@@ -1,5 +1,7 @@
 using CustomMediator.Abstractions.Commands;
+using CustomMediator.Abstractions.Queries;
 using CustomMediator.Api.Commands;
+using CustomMediator.Api.Queries;
 using CustomMediator.Api.Repositories;
 using CustomMediator.Api.Requests;
 using Microsoft.AspNetCore.Mvc;
@@ -10,25 +12,27 @@ namespace CustomMediator.Api.Controllers;
 [Route("[controller]")]
 public class WeatherForecastController : ControllerBase
 {
-
-    private readonly IWeatherForecastRepository _weatherForecastRepository;
     private readonly ICommandSender _commandSender;
+    private readonly IQuerySender _querySender;
 
-    public WeatherForecastController(IWeatherForecastRepository weatherForecastRepository, ICommandSender commandSender)
+    public WeatherForecastController(ICommandSender commandSender, IQuerySender querySender)
     {
-        _weatherForecastRepository = weatherForecastRepository;
         _commandSender = commandSender;
+        _querySender = querySender;
     }
-
-    [HttpGet]
-    public async Task<IEnumerable<WeatherForecast>> Get(CancellationToken cancellationToken)
-        => await _weatherForecastRepository.GetAsync(cancellationToken);
 
     [HttpPost]
     public async Task<ActionResult> Create(CreateForecastRequest request, CancellationToken cancellationToken)
     {
         await _commandSender.SendAsync(new CreateForecastCommand(request.City), cancellationToken);
         return Ok();
+    }
+
+    [HttpGet("{city}")]
+    public async Task<ActionResult> Get([FromRoute] string city, CancellationToken cancellationToken)
+    {
+        var forecast = await _querySender.SendAsync(new GetForecastByCityQuery(city), cancellationToken);
+        return forecast is null ? NotFound() : Ok(forecast);
     }
     
 }
