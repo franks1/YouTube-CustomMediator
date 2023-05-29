@@ -1,6 +1,10 @@
 using System.Reflection;
 using CustomMediator;
 using CustomMediator.Abstractions.Commands;
+using CustomMediator.Abstractions.Pipeline;
+using CustomMediator.Api.Behaviors;
+using CustomMediator.Api.Behaviors.Commands;
+using CustomMediator.Api.Behaviors.Queries;
 using CustomMediator.Api.Commands;
 using CustomMediator.Api.Commands.Handlers;
 using CustomMediator.Api.Repositories;
@@ -18,6 +22,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IWeatherForecastRepository, WeatherForecastRepository>();
 
 builder.Services.AddCustomMediator(Assembly.GetExecutingAssembly());
+
+builder.Services.AddTransient(typeof(ICommandPipelineBehavior<>), typeof(CommandBehavior<>));
+builder.Services.AddTransient(typeof(ICommandPipelineBehavior<>), typeof(CommandBehavior2<>));
+
+builder.Services.AddTransient(typeof(IQueryPipelineBehavior<,>), typeof(QueryBehavior1<,>));
+builder.Services.AddTransient(typeof(IQueryPipelineBehavior<,>), typeof(QueryBehavior2<,>));
 
 var app = builder.Build();
 
